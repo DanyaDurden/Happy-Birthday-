@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Галерея</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #f5f3ef;
+      --ink: #1a1814;
+      --muted: #8a8680;
+      --accent: #c4a882;
+      --line: #dedad4;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 80px 60px 60px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 40px;
+      animation: fadeUp 1s ease both;
+    }
+
+    .header-left h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    .header-left h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .header-right {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .header-right .date {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .header-right .subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* ── INTRO ── */
+    .intro {
+      padding: 50px 60px 40px;
+      max-width: 620px;
+      animation: fadeUp 1s 0.15s ease both;
+    }
+
+    .intro p {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-style: italic;
+    }
+
+    /* ── GALLERY ── */
+    .gallery {
+      padding: 40px 60px 100px;
+      columns: 3;
+      column-gap: 28px;
+    }
+
+    @media (max-width: 900px) {
+      .gallery {
+        columns: 2;
+        padding: 30px 30px 80px;
+      }
+
+      header {
+        padding: 50px 30px 40px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .header-right {
+        text-align: left;
+      }
+
+      .intro {
+        padding: 30px 30px 20px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .gallery {
+        columns: 1;
+        padding: 20px 20px 60px;
+      }
+
+      header {
+        padding: 40px 20px 30px;
+      }
+
+      .intro {
+        padding: 20px 20px 10px;
+      }
+    }
+
+    .photo-item {
+      break-inside: avoid;
+      margin-bottom: 28px;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .photo-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .photo-wrap {
+      position: relative;
+      overflow: hidden;
+      background: var(--line);
+      cursor: pointer;
+    }
+
+    /* Placeholder aspect ratios — vary for masonry feel */
+    .photo-wrap::before {
+      content: '';
+      display: block;
+    }
+
+    .photo-item:nth-child(3n+1) .photo-wrap::before {
+      padding-top: 125%;
+    }
+
+    .photo-item:nth-child(3n+2) .photo-wrap::before {
+      padding-top: 80%;
+    }
+
+    .photo-item:nth-child(3n+3) .photo-wrap::before {
+      padding-top: 100%;
+    }
+
+    .photo-wrap img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* Placeholder when no real image */
+    .photo-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--muted);
+    }
+
+    .photo-placeholder svg {
+      width: 36px;
+      height: 36px;
+      opacity: 0.4;
+    }
+
+    .photo-placeholder span {
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0.5;
+    }
+
+    .photo-wrap:hover img,
+    .photo-wrap:hover .photo-placeholder {
+      transform: scale(1.03);
+    }
+
+    .photo-caption {
+      padding: 14px 4px 0;
+    }
+
+    .photo-caption .caption-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem;
+      font-style: italic;
+      color: var(--ink);
+      line-height: 1.5;
+      display: block;
+    }
+
+    .photo-caption .caption-meta {
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 5px;
+      display: block;
+    }
+
+    /* ── LIGHTBOX ── */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 24, 20, 0.93);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      padding: 40px;
+    }
+
+    .lightbox.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .lightbox-inner {
+      max-width: 860px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      transform: scale(0.95);
+      transition: transform 0.35s ease;
+    }
+
+    .lightbox.open .lightbox-inner {
+      transform: scale(1);
+    }
+
+    .lightbox-inner img {
+      max-height: 70vh;
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    .lightbox-caption {
+      color: #d6d0c8;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-style: italic;
+      text-align: center;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 28px;
+      right: 32px;
+      background: none;
+      border: none;
+      color: #d6d0c8;
+      font-size: 1.6rem;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      line-height: 1;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .lightbox-close:hover {
+      opacity: 1;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 30px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 560px) {
+      footer {
+        padding: 24px 20px;
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="header-left">
+      <h1>С днём<br /><em>рождения !!!!!</em></h1>
+    </div>
+    <div class="header-right">
+      <div class="date">16 Мая · 2026</div>
+      <div class="subtitle"> </div>
+    </div>
+  </header>
+
+  <div class="intro">
+    <p>Здесь вы увидите много своих фотографий... Помните, что вы на любой прекрасна!!! С любовью от 21П)</p>
+  </div>
+
+  <main class="gallery" id="gallery">
+
+    <!-- Фото 1 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/1Photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 1</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Фотография с которой всё началось... Но, к сожалению, она была снята так же быстро,
+          как и была обнаружена.</span>
+        <span class="caption-meta">11 сентября 2025 г.</span>
+      </div>
+    </div>
+
+    <!-- Фото 2 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/2photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 2</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Смирившаяся Анна Сергеевна</span>
+        <span class="caption-meta">26 сентября 2025 г.</span>
+      </div>
+    </div>
+
+    <!-- Фото 3 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/3photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 3</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Объясняющая Анна Сергеевна</span>
+        <span class="caption-meta">26 сентября 2025 г.</span>
+      </div>
+    </div>
+
+    <!-- Фото 4 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/4photo.jpg  " alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 4</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Радостная Анна Сергеевна</span>
+        <span class="caption-meta">26 сентября 2025 г.</span>
+      </div>
+    </div>
+
+    <!-- Фото 5 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/5photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 5</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Очень вайбово получившаяся Анна Сергеевна</span>
+        <span class="caption-meta">5 февраля 2026 г.</span>
+      </div>
+    </div>
+
+    <!-- Фото 6 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/6photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 6</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Второй раз очень вайбово получившаяся Анна Сергеевна</span>
+        <span class="caption-meta">5 февраля 2026 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 7 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/7photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 7</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Испугалась новых мемов...</span>
+        <span class="caption-meta">22 Января 2026 г.</span>
+      </div>
+    </div>
+
+
+
+    <!-- Фото 8 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/8happy.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 8</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Обрадовалась)</span>
+        <span class="caption-meta">22 Января 2026 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 9 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/9photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 9</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Анна Сергеевна на коньках</span>
+        <span class="caption-meta">28 января 2026 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 10 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/10photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 10</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Анна Сергеевна на звездопаде</span>
+        <span class="caption-meta">6 ноября 2025 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 11 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/11photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 11</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Анна Сергеевна очень серьёзная</span>
+        <span class="caption-meta">30 октября 2025 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 12 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/12photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 12</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Фух, расслабились</span>
+        <span class="caption-meta">30 октября 2025 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 13 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/13photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 13</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Тайная фотография</span>
+        <span class="caption-meta">Неизвестная дата</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 14 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/14photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 14</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Анна Сергеевн с Дашей на звездопаде</span>
+        <span class="caption-meta">6 ноября 2025 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 15 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/15photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 15</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">ДОХОДЧИВО объясняющая Анна Сергеевна</span>
+        <span class="caption-meta">1 ноября 2025 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 16 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/16photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 16</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Довели</span>
+        <span class="caption-meta">25 Апреля 2026 г.</span>
+      </div>
+    </div>
+
+
+
+    <!-- Фото 17 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/17photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 17</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Кружок очумелые ручки</span>
+        <span class="caption-meta">29 Апреля 2026 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 18 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/18photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 18</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Анна Сергеевна слилась с толпой студентов</span>
+        <span class="caption-meta">29 Апреля 2026 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 19 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/19photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 19</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">ВЫ ВООБЩЕ ВИДЕЛИ НОВУЮ АВАТАРКУ АННЫ СЕРГЕЕВНЫ В ЭИОСЕ???</span>
+        <span class="caption-meta">29 Апреля 2026 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 20 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/20photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 20</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Анна Сергеевна уходит</span>
+        <span class="caption-meta">29 Апреля 2026 г.</span>
+      </div>
+    </div>
+
+
+
+    <!-- Фото 21 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/21photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 21</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Здравствуйте</span>
+        <span class="caption-meta">5 Марта 2026 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 22 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/22photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 22</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Группа Анны Сергеевны и парочка импостеров</span>
+        <span class="caption-meta">28 Января 2026 г.</span>
+      </div>
+    </div>
+
+
+    <!-- Фото 23 -->
+    <div class="photo-item">
+      <div class="photo-wrap" onclick="openLightbox(this)">
+        <img src="photo/23photo.jpg" alt="">
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Фото 23</span>
+        </div>
+      </div>
+      <div class="photo-caption">
+        <span class="caption-text">Все вместе</span>
+        <span class="caption-meta">28 Января 2026 г.</span>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <span>С любовью и уважением</span>
+    <span>© 2026</span>
+  </footer>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <div class="lightbox-inner">
+      <img id="lightbox-img" src="" alt="" />
+      <div class="lightbox-caption" id="lightbox-caption"></div>
+    </div>
+  </div>
+
+  <script>
+    // Scroll-reveal
+    const items = document.querySelectorAll('.photo-item');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    items.forEach(el => observer.observe(el));
+
+    // Lightbox
+    function openLightbox(wrap) {
+      const img = wrap.querySelector('img');
+      const caption = wrap.closest('.photo-item').querySelector('.caption-text').textContent;
+      const lb = document.getElementById('lightbox');
+      const lbImg = document.getElementById('lightbox-img');
+      const lbCap = document.getElementById('lightbox-caption');
+
+      if (img) {
+        lbImg.src = img.src;
+        lbImg.alt = img.alt;
+        lbImg.style.display = '';
+      } else {
+        lbImg.src = '';
+        lbImg.style.display = 'none';
+      }
+      lbCap.textContent = caption;
+      lb.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox(e) {
+      if (e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
+      document.getElementById('lightbox').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeLightbox({ target: document.getElementById('lightbox') }); }
+    });
+  </script>
+</body>
+
+</html>
